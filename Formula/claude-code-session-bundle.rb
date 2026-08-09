@@ -15,13 +15,16 @@ class ClaudeCodeSessionBundle < Formula
   test do
     assert_match "0.5.0", shell_output("#{bin}/cc-transcript --version")
 
+    cp libexec/"compact_session_bundle.py", testpath
+    cp_r libexec/"tests", testpath/"tests"
+
     system formula_opt_bin("python@3.14")/"python3",
            "-m", "py_compile",
-           libexec/"compact_session_bundle.py"
+           testpath/"compact_session_bundle.py"
 
     system formula_opt_bin("python@3.14")/"python3",
            "-m", "unittest", "discover",
-           "-s", libexec/"tests",
+           "-s", testpath/"tests",
            "-v"
   end
 end
