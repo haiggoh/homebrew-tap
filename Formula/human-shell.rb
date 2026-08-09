@@ -1,10 +1,11 @@
 class HumanShell < Formula
   desc "Make zsh command outcomes visible in macOS Terminal"
   homepage "https://github.com/haiggoh/human-shell"
-  url "https://github.com/haiggoh/human-shell/releases/download/v1.1.0/human-shell-1.1.0.tar.gz"
-  sha256 "232c7473537b02248b77884dd788ed1ea7b1689031ef23a491a9eacdf0f11d35"
+  url "https://github.com/haiggoh/human-shell/releases/download/v1.1.1/human-shell-1.1.1.tar.gz"
+  sha256 "069e5a5240481191a8ec138291608bcebd33ec676cc8eba1b253659540df9d1c"
   license "MIT"
 
+  depends_on "dockutil"
   depends_on :macos
 
   def install
@@ -32,18 +33,18 @@ class HumanShell < Formula
       mv "$staging" "$destination"
       chmod 755 "$destination/install.sh" "$destination/uninstall.sh"
 
-      if "$destination/install.sh"; then
+      if "$destination/install.sh" "$@"; then
         print "PASS: Human Shell #{version} installed for this user."
         print 'Run: source "$HOME/.zshrc"'
       else
-        status=$?
-        print -u2 "FAIL: user installer exited with status $status."
+        exit_status=$?
+        print -u2 "FAIL: user installer exited with status $exit_status."
         rm -rf "$destination"
         if [[ -e "$backup" ]]; then
           mv "$backup" "$destination"
           print -u2 "Restored the previous user installation."
         fi
-        exit "$status"
+        exit "$exit_status"
       fi
     EOS
 
@@ -70,9 +71,12 @@ class HumanShell < Formula
         human-shell-install
         source ~/.zshrc
 
-      This generates both Dock launchers locally and copies Terminal's icon from
-      this Mac. Homebrew does not modify your shell configuration during brew install.
+      This generates both Dock launchers locally, applies this Mac's Terminal icon,
+      and adds both launchers to the Dock. To skip Dock changes, run:
 
+        human-shell-install --no-dock
+
+      Homebrew does not modify your shell configuration or Dock during brew install.
       After a future brew upgrade, rerun human-shell-install to refresh the user copy.
     EOS
   end
