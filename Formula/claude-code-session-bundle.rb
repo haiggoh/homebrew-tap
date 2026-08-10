@@ -17,9 +17,10 @@ class ClaudeCodeSessionBundle < Formula
   test do
     assert_equal "0.6.0\n", shell_output("#{bin}/cc-transcript --version")
 
+    cp libexec/"compact_session_bundle.py", testpath
     system formula_opt_bin("python@3.14")/"python3",
            "-m", "py_compile",
-           libexec/"compact_session_bundle.py"
+           testpath/"compact_session_bundle.py"
 
     input = testpath/"session.jsonl"
     output = testpath/"out"
