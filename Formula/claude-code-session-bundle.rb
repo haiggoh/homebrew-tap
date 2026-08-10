@@ -3,8 +3,8 @@ require "json"
 class ClaudeCodeSessionBundle < Formula
   desc "Compact Claude Code transcripts for review and LLM context handoff"
   homepage "https://github.com/haiggoh/claude-code-session-bundle"
-  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.6.0/claude-code-session-bundle-0.6.0.tar.gz"
-  sha256 "2555db2c12cb3ba208fe79510275d0d07f868fcee4876a9aaee1d467be56575a"
+  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.6.1/claude-code-session-bundle-0.6.1.tar.gz"
+  sha256 "305ac1fe3ed5d0b0fbb578fd4735623a7301da55aee99963d0ea78055c8c641f"
   license "MIT"
 
   depends_on "python@3.14"
@@ -15,7 +15,7 @@ class ClaudeCodeSessionBundle < Formula
   end
 
   test do
-    assert_equal "0.6.0\n", shell_output("#{bin}/cc-transcript --version")
+    assert_equal "0.6.1\n", shell_output("#{bin}/cc-transcript --version")
 
     cp libexec/"compact_session_bundle.py", testpath
     system formula_opt_bin("python@3.14")/"python3",
