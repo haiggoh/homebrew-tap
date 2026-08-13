@@ -3,8 +3,8 @@ require "json"
 class ClaudeCodeSessionBundle < Formula
   desc "Compact Claude Code transcripts for review and LLM context handoff"
   homepage "https://github.com/haiggoh/claude-code-session-bundle"
-  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.6.1/claude-code-session-bundle-0.6.1.tar.gz"
-  sha256 "305ac1fe3ed5d0b0fbb578fd4735623a7301da55aee99963d0ea78055c8c641f"
+  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.6.2/claude-code-session-bundle-0.6.2.tar.gz"
+  sha256 "b7c80b090b1eb7b3d74ac1f1b02e96be0bd90e02f79c68189068a7d26be340e8"
   license "MIT"
 
   depends_on "python@3.14"
@@ -15,7 +15,11 @@ class ClaudeCodeSessionBundle < Formula
   end
 
   test do
-    assert_equal "0.6.1\n", shell_output("#{bin}/cc-transcript --version")
+    # Derived from the url's version rather than restated: a literal here has to be
+    # bumped in lockstep with the url, and when it isn't the test either fails for the
+    # wrong reason or (as happened at 0.5.0, where both were stale) passes against a
+    # superseded release.
+    assert_equal "#{version}\n", shell_output("#{bin}/cc-transcript --version")
 
     cp libexec/"compact_session_bundle.py", testpath
     system formula_opt_bin("python@3.14")/"python3",
