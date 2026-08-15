@@ -1,8 +1,8 @@
 class HumanShell < Formula
   desc "Make zsh command outcomes visible in macOS Terminal"
   homepage "https://github.com/haiggoh/human-shell"
-  url "https://github.com/haiggoh/human-shell/releases/download/v1.2.0/human-shell-1.2.0.tar.gz"
-  sha256 "1817be877e90b94c2f91b49a0c289a93dc09c0eb041b05a3150107caf4287a6c"
+  url "https://github.com/haiggoh/human-shell/releases/download/v1.2.1/human-shell-1.2.1.tar.gz"
+  sha256 "e6ae3bd01771a8ba8f7301a051f9128b57aff0e731e414b82639084140fde19e"
   license "MIT"
 
   depends_on "dockutil"
