@@ -1,8 +1,8 @@
 class HumanShell < Formula
   desc "Make zsh command outcomes visible in macOS Terminal"
   homepage "https://github.com/haiggoh/human-shell"
-  url "https://github.com/haiggoh/human-shell/releases/download/v1.2.1/human-shell-1.2.1.tar.gz"
-  sha256 "e6ae3bd01771a8ba8f7301a051f9128b57aff0e731e414b82639084140fde19e"
+  url "https://github.com/haiggoh/human-shell/releases/download/v1.3.0/human-shell-1.3.0.tar.gz"
+  sha256 "ee03e659204ed27ba3c140ad1ec3d275b0048d0d9c9b9bc6af0564742df3e58d"
   license "MIT"
 
   depends_on "dockutil"
@@ -89,10 +89,11 @@ class HumanShell < Formula
     assert_path_exists libexec/"Human Shell Failures Only.applescript"
     assert_path_exists libexec/"scripts/scrub-launcher-history.zsh"
 
-    # The shipped suite checks the exit-status-to-label table, the right-prompt
-    # composition, the one-label-per-command rule, the history filter and
-    # scrubber, and the syntax of every script and applet. It needs no terminal
-    # and writes only inside its own temporary directories.
+    # The shipped suite checks the exit-status-to-label table, the status-1
+    # findings table, the right-aligned report line, the one-label-per-command
+    # rule, the history filter and scrubber, and the syntax of every script and
+    # applet. It needs no terminal and writes only inside its own temporary
+    # directories.
     system "/bin/zsh", libexec/"tests/run-tests.zsh"
   end
 end
