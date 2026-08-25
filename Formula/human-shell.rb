@@ -4,7 +4,7 @@ class HumanShell < Formula
   url "https://github.com/haiggoh/human-shell/releases/download/v1.3.0/human-shell-1.3.0.tar.gz"
   sha256 "ee03e659204ed27ba3c140ad1ec3d275b0048d0d9c9b9bc6af0564742df3e58d"
   license "MIT"
-  revision 1
+  revision 2
 
   depends_on "dockutil"
   depends_on :macos
@@ -48,7 +48,8 @@ class HumanShell < Formula
           for stale in "${previous[@]:$keep}"; do
             rm -rf "$stale"
           done
-          print "PASS: pruned $(( ${#previous} - keep )) superseded user copies, kept the newest $keep."
+          pruned=$(( ${#previous} - keep ))
+          print "PASS: pruned $pruned superseded user $( (( pruned == 1 )) && print copy || print copies ), kept the newest $keep."
         fi
       else
         exit_status=$?
