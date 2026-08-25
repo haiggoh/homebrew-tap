@@ -1,10 +1,9 @@
 class HumanShell < Formula
   desc "Make zsh command outcomes visible in macOS Terminal"
   homepage "https://github.com/haiggoh/human-shell"
-  url "https://github.com/haiggoh/human-shell/releases/download/v1.3.0/human-shell-1.3.0.tar.gz"
-  sha256 "ee03e659204ed27ba3c140ad1ec3d275b0048d0d9c9b9bc6af0564742df3e58d"
+  url "https://github.com/haiggoh/human-shell/releases/download/v1.3.1/human-shell-1.3.1.tar.gz"
+  sha256 "c7a03c306250d1a337a2ed255ac6569e3b0fce50e4c35b847f2234b09feba037"
   license "MIT"
-  revision 2
 
   depends_on "dockutil"
   depends_on :macos
@@ -41,16 +40,14 @@ class HumanShell < Formula
         # The backup above exists so a failed install can be rolled back. Once
         # the install has succeeded it is only history, and one is left per run,
         # so without this the directory grows by a copy on every upgrade and
-        # nothing ever removes it. Keep the newest few and drop the rest.
-        keep="${HUMAN_SHELL_KEEP_PREVIOUS:-3}"
-        previous=("$root"/.previous-*(N/om))
-        if (( ${#previous} > keep )); then
-          for stale in "${previous[@]:$keep}"; do
-            rm -rf "$stale"
-          done
-          pruned=$(( ${#previous} - keep ))
-          print "PASS: pruned $pruned superseded user $( (( pruned == 1 )) && print copy || print copies ), kept the newest $keep."
-        fi
+        # nothing ever removes it. Shares one implementation with install.sh.
+        zsh "$destination/scripts/reap-backups.zsh" \
+          --dir "$root" \
+          --prefix '.previous-' \
+          --keep "${HUMAN_SHELL_KEEP_PREVIOUS:-3}" \
+          --kind directory \
+          --label 'user copy' \
+          --label-plural 'user copies' || true
       else
         exit_status=$?
         print -u2 "FAIL: user installer exited with status $exit_status."
