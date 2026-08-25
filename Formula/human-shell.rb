@@ -4,6 +4,7 @@ class HumanShell < Formula
   url "https://github.com/haiggoh/human-shell/releases/download/v1.3.0/human-shell-1.3.0.tar.gz"
   sha256 "ee03e659204ed27ba3c140ad1ec3d275b0048d0d9c9b9bc6af0564742df3e58d"
   license "MIT"
+  revision 1
 
   depends_on "dockutil"
   depends_on :macos
@@ -36,6 +37,19 @@ class HumanShell < Formula
       if "$destination/install.sh" "$@"; then
         print "PASS: Human Shell #{version} installed for this user."
         print 'Run: source "$HOME/.zshrc"'
+
+        # The backup above exists so a failed install can be rolled back. Once
+        # the install has succeeded it is only history, and one is left per run,
+        # so without this the directory grows by a copy on every upgrade and
+        # nothing ever removes it. Keep the newest few and drop the rest.
+        keep="${HUMAN_SHELL_KEEP_PREVIOUS:-3}"
+        previous=("$root"/.previous-*(N/om))
+        if (( ${#previous} > keep )); then
+          for stale in "${previous[@]:$keep}"; do
+            rm -rf "$stale"
+          done
+          print "PASS: pruned $(( ${#previous} - keep )) superseded user copies, kept the newest $keep."
+        fi
       else
         exit_status=$?
         print -u2 "FAIL: user installer exited with status $exit_status."
@@ -78,6 +92,11 @@ class HumanShell < Formula
 
       Homebrew does not modify your shell configuration or Dock during brew install.
       After a future brew upgrade, rerun human-shell-install to refresh the user copy.
+
+      Each run keeps the previous user copy under
+      ~/.local/share/human-shell/.previous-<timestamp> so a failed install can be
+      rolled back. The newest 3 are kept and older ones are pruned; set
+      HUMAN_SHELL_KEEP_PREVIOUS to change how many are retained.
     EOS
   end
 
