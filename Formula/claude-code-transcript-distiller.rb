@@ -1,17 +1,25 @@
 require "json"
 
-class ClaudeCodeSessionBundle < Formula
-  desc "Compact Claude Code transcripts for review and LLM context handoff"
-  homepage "https://github.com/haiggoh/claude-code-session-bundle"
-  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.6.2/claude-code-session-bundle-0.6.2.tar.gz"
-  sha256 "b7c80b090b1eb7b3d74ac1f1b02e96be0bd90e02f79c68189068a7d26be340e8"
+class ClaudeCodeTranscriptDistiller < Formula
+  desc "Distill native Claude Code transcripts into compact, line-addressable evidence and indexed LLM handoffs"
+  oldname "claude-code-session-bundle"
+
+  # The repo is mid-rename (claude-code-session-bundle → claude-code-transcript-distiller);
+  # this is the new slug with GitHub's redirect in place, and the formula's own rename is
+  # what makes the redirect fire.
+  homepage "https://github.com/haiggoh/claude-code-transcript-distiller"
+  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.7.0/claude-code-transcript-distiller-0.7.0.tar.gz"
+  sha256 "e9d5fdaee6e6b4de4cc54a718a137165e720a3369bd4deedc5984ba6dba0ea09"
   license "MIT"
 
   depends_on "python@3.14"
 
   def install
     libexec.install Dir["*"]
-    bin.install_symlink libexec/"compact_session_bundle.py" => "cc-transcript"
+    # 0.6.x shipped the entry script under its pre-rename filename; keep that path
+    # valid next to cc_transcript.py so scripts written against 0.6.x keep working.
+    (libexec / "compact_session_bundle.py").write_file((libexec / "cc_transcript.py").read)
+    bin.install_symlink libexec/"cc_transcript.py" => "cc-transcript"
   end
 
   test do
@@ -21,10 +29,10 @@ class ClaudeCodeSessionBundle < Formula
     # superseded release.
     assert_equal "#{version}\n", shell_output("#{bin}/cc-transcript --version")
 
-    cp libexec/"compact_session_bundle.py", testpath
+    cp libexec/"cc_transcript.py", testpath
     system formula_opt_bin("python@3.14")/"python3",
            "-m", "py_compile",
-           testpath/"compact_session_bundle.py"
+           testpath/"cc_transcript.py"
 
     input = testpath/"session.jsonl"
     output = testpath/"out"
