@@ -4,11 +4,9 @@ class ClaudeCodeTranscriptDistiller < Formula
   desc "Distill native Claude Code transcripts into compact, line-addressable evidence and indexed LLM handoffs"
   oldname "claude-code-session-bundle"
 
-  # The repo is mid-rename (claude-code-session-bundle → claude-code-transcript-distiller);
-  # this is the new slug with GitHub's redirect in place, and the formula's own rename is
-  # what makes the redirect fire.
+  # Keep oldname for Homebrew migration; use the canonical post-rename asset URL.
   homepage "https://github.com/haiggoh/claude-code-transcript-distiller"
-  url "https://github.com/haiggoh/claude-code-session-bundle/releases/download/v0.7.0/claude-code-transcript-distiller-0.7.0.tar.gz"
+  url "https://github.com/haiggoh/claude-code-transcript-distiller/releases/download/v0.7.0/claude-code-transcript-distiller-0.7.0.tar.gz"
   sha256 "e9d5fdaee6e6b4de4cc54a718a137165e720a3369bd4deedc5984ba6dba0ea09"
   license "MIT"
 
