@@ -5,9 +5,9 @@ class ClaudeCodeTranscriptDistiller < Formula
   oldname "claude-code-session-bundle"
 
   # Keep oldname for Homebrew migration; use the canonical post-rename asset URL.
-  homepage "https://github.com/haiggoh/claude-code-transcript-distiller"
-  url "https://github.com/haiggoh/claude-code-transcript-distiller/releases/download/v0.7.0/claude-code-transcript-distiller-0.7.0.tar.gz"
-  sha256 "e9d5fdaee6e6b4de4cc54a718a137165e720a3369bd4deedc5984ba6dba0ea09"
+  homepage "https://github.com/haiggoh/Claude-Code-Transcript-Distiller"
+  url "https://github.com/haiggoh/Claude-Code-Transcript-Distiller/releases/download/v0.8.0/claude-code-transcript-distiller-0.8.0.tar.gz"
+  sha256 "d7e6d9f629082d1621c8297a6876dee89e1cb148bf0700e635714c6391061b85"
   license "MIT"
 
   depends_on "python@3.14"
