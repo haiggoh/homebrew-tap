@@ -1,10 +1,7 @@
 require "json"
 
 class ClaudeCodeTranscriptDistiller < Formula
-  desc "Distill native Claude Code transcripts into compact, line-addressable evidence and indexed LLM handoffs"
-  oldname "claude-code-session-bundle"
-
-  # Keep oldname for Homebrew migration; use the canonical post-rename asset URL.
+  desc "Distill Claude Code transcripts into compact evidence and indexed handoffs"
   homepage "https://github.com/haiggoh/Claude-Code-Transcript-Distiller"
   url "https://github.com/haiggoh/Claude-Code-Transcript-Distiller/releases/download/v0.8.0/claude-code-transcript-distiller-0.8.0.tar.gz"
   sha256 "d7e6d9f629082d1621c8297a6876dee89e1cb148bf0700e635714c6391061b85"
