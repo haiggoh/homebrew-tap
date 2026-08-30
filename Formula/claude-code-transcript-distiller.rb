@@ -6,6 +6,7 @@ class ClaudeCodeTranscriptDistiller < Formula
   url "https://github.com/haiggoh/Claude-Code-Transcript-Distiller/releases/download/v0.8.0/claude-code-transcript-distiller-0.8.0.tar.gz"
   sha256 "d7e6d9f629082d1621c8297a6876dee89e1cb148bf0700e635714c6391061b85"
   license "MIT"
+  revision 1
 
   depends_on "python@3.14"
 
@@ -13,7 +14,9 @@ class ClaudeCodeTranscriptDistiller < Formula
     libexec.install Dir["*"]
     # 0.6.x shipped the entry script under its pre-rename filename; keep that path
     # valid next to cc_transcript.py so scripts written against 0.6.x keep working.
-    (libexec / "compact_session_bundle.py").write_file((libexec / "cc_transcript.py").read)
+    (libexec / "compact_session_bundle.py").write(
+      (libexec / "cc_transcript.py").read,
+    )
     bin.install_symlink libexec/"cc_transcript.py" => "cc-transcript"
   end
 
