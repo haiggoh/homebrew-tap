@@ -43,3 +43,19 @@ human-shell-uninstall
 source ~/.zshrc
 brew uninstall human-shell
 ```
+
+## Claude Code Transcript Distiller
+
+```zsh
+brew install haiggoh/tap/claude-code-transcript-distiller
+cc-transcript session.jsonl -o out/
+```
+
+Puts `cc-transcript` on your PATH. It distills a Claude Code session transcript into a
+compact evidence bundle (`<session>.compact.jsonl.txt`) and an indexed handoff capsule
+(`<session>.indexed_capsule.md`), with base64 blobs omitted rather than carried. The
+pre-rename entry point `compact_session_bundle.py` stays valid inside the package, so
+scripts written against 0.6.x keep working. Python comes from the formula (python@3.14);
+see the [project README](https://github.com/haiggoh/Claude-Code-Transcript-Distiller#readme).
+
+After upgrading: `brew upgrade claude-code-transcript-distiller`.
