@@ -59,3 +59,12 @@ scripts written against 0.6.x keep working. Python comes from the formula (pytho
 see the [project README](https://github.com/haiggoh/Claude-Code-Transcript-Distiller#readme).
 
 After upgrading: `brew upgrade claude-code-transcript-distiller`.
+
+## Automatic formula updates
+
+`.github/workflows/bump-formulas.yml` checks every hour whether a formula's repo has a newer
+GitHub release, and if so points the formula at the new release tarball (url + sha256, the hash
+computed from the downloaded file) and commits it. A release therefore reaches `brew upgrade`
+within the hour with no manual step. Run it right away with
+`gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap` (optionally `-f formula=free-agents`).
+The logic is `.github/scripts/bump_formulas.py` (`--help`, `--dry-run`); its offline tests run first.
