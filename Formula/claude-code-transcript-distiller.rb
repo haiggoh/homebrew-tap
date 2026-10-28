@@ -27,7 +27,7 @@ class ClaudeCodeTranscriptDistiller < Formula
     assert_equal "#{version}\n", shell_output("#{bin}/cc-transcript --version")
 
     cp libexec/"cc_transcript.py", testpath
-    system formula_opt_bin("python@3.14")/"python3",
+    system formula_opt_bin("python@3.14")/"python3.14",
            "-m", "py_compile",
            testpath/"cc_transcript.py"
 
