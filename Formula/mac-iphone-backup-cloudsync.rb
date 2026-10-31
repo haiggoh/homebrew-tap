@@ -9,7 +9,7 @@ class MacIphoneBackupCloudsync < Formula
   # release asset ships the .app and this formula just installs it.
   def install
     libexec.install Dir["*.app"]
-    (bin/"mac-iphone-backup-cloudsync").write <<~EOS
+    bin.write_exec_script "mac-iphone-backup-cloudsync", <<~EOS
       #!/bin/sh
       exec "#{libexec}/iPhone Backup.app/Contents/MacOS/iPhoneBackup" "$@"
     EOS
