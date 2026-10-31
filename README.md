@@ -77,9 +77,12 @@ keeps the formula pointed at the newest release.
 
 ## Automatic formula updates
 
-`.github/workflows/bump-formulas.yml` checks every hour whether a formula's repo has a newer
-GitHub release, and if so points the formula at the new release tarball (url + sha256, the hash
-computed from the downloaded file) and commits it. A release therefore reaches `brew upgrade`
-within the hour with no manual step. Run it right away with
-`gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap` (optionally `-f formula=free-agents`).
-The logic is `.github/scripts/bump_formulas.py` (`--help`, `--dry-run`); its offline tests run first.
+`.github/workflows/bump-formulas.yml` checks **every formula in `Formula/`** each hour: any
+formula whose `url` is a GitHub release tarball is pointed at its repo's newest release
+(url + sha256, the hash computed from the downloaded file) and committed. A release therefore
+reaches `brew upgrade` within the hour with no manual step — all four formulae are covered, not
+just one. Run it right away with `gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap`
+(optionally `-f formula=<name>` for a single one; empty = all). Preview locally with
+`python3 .github/scripts/bump_formulas.py --dry-run`. The logic is
+`.github/scripts/bump_formulas.py` (`--help`); its offline tests — including a multi-formula
+discovery test — run first in the workflow.

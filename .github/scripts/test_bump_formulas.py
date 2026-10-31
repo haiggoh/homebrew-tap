@@ -3,7 +3,9 @@
 
 Usage: python3 .github/scripts/test_bump_formulas.py [-v]   (--help prints this)
 """
+import contextlib
 import hashlib
+import io
 import sys
 import tempfile
 import unittest
@@ -76,6 +78,72 @@ class Bump(unittest.TestCase):
         line, changed = bf.bump(self.f, False, get=lambda *a: ASSET, latest=fake_latest("nightly"))
         self.assertFalse(changed)
         self.assertIn("ERROR", line)
+
+
+class MultiFormulaMain(unittest.TestCase):
+    """main() over a tap dir must bump EVERY release-tarball formula independently and
+    skip the rest — the 'all my formulae get the same treatment' contract."""
+
+    def test_main_discovers_and_bumps_all_matching_formulae(self):
+        d = Path(tempfile.mkdtemp())
+        fx = d / "Formula"
+        fx.mkdir()
+        for name, url in (("alpha", "https://github.com/acme/alpha/releases/download/v1.0.0/alpha-1.0.0.tar.gz"),
+                          ("beta", "https://github.com/acme/beta/releases/download/v2.0.0/beta-2.0.0.tar.gz"),
+                          ("gamma", "https://github.com/acme/gamma/archive/refs/heads/main.tar.gz")):
+            (fx / f"{name}.rb").write_text(
+                f'class X < Formula\n  url "{url}"\n  sha256 "{"0"*64}"\n  license "MIT"\nend\n')
+        # alpha has a newer release; beta is current; gamma is not a release url.
+        # NOTE: patch bf.bump, not bf._get/latest_release — bump()'s defaults bind those
+        # names at definition time, so module-attr patching would not reach it.
+        rels = {"alpha": {"tag_name": "v1.1.0",
+                          "assets": [{"name": "alpha-1.1.0.tar.gz", "browser_download_url": "https://dl/alpha"}]},
+                "beta": {"tag_name": "v2.0.0",
+                         "assets": [{"name": "beta-2.0.0.tar.gz", "browser_download_url": "https://dl/beta"}]}}
+        orig_bump = bf.bump
+        bf.bump = lambda p, dr: orig_bump(p, dr, get=lambda u, a=None: ASSET,
+                                          latest=lambda o, r: rels[p.stem])
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = bf.main(["--tap-dir", str(d)])
+            out = buf.getvalue()
+        finally:
+            bf.bump = orig_bump
+        self.assertEqual(rc, 0, out)
+        self.assertIn("alpha: 1.0.0 -> 1.1.0", out)
+        self.assertIn("beta: up to date (2.0.0)", out)
+        self.assertIn("gamma: skipped", out)
+        self.assertIn("changed=alpha", out)
+        a = (fx / "alpha.rb").read_text()
+        self.assertIn("/download/v1.1.0/alpha-1.1.0.tar.gz", a)
+        self.assertIn(hashlib.sha256(ASSET).hexdigest(), a)
+        self.assertIn("v2.0.0/beta-2.0.0.tar.gz", (fx / "beta.rb").read_text(), "untouched formula stays")
+
+    def test_main_formula_filter_selects_one(self):
+        d = Path(tempfile.mkdtemp())
+        fx = d / "Formula"
+        fx.mkdir()
+        for name in ("alpha", "beta"):
+            (fx / f"{name}.rb").write_text(
+                f'class X < Formula\n  url "https://github.com/acme/{name}/releases/download/v1.0.0/'
+                f'{name}-1.0.0.tar.gz"\n  sha256 "{"0"*64}"\nend\n')
+        orig_bump = bf.bump
+        bf.bump = lambda p, dr: orig_bump(p, dr, get=lambda u, a=None: ASSET,
+                                          latest=lambda o, r: {"tag_name": "v9.9.9", "assets": [
+                                              {"name": f"{p.stem}-9.9.9.tar.gz",
+                                               "browser_download_url": "https://dl/x"}]})
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = bf.main(["--tap-dir", str(d), "--formula", "beta"])
+            out = buf.getvalue()
+        finally:
+            bf.bump = orig_bump
+        self.assertEqual(rc, 0, out)
+        self.assertIn("beta: 1.0.0 -> 9.9.9", out)
+        self.assertNotIn("alpha:", out)
+        self.assertIn("v1.0.0/alpha-1.0.0.tar.gz", (fx / "alpha.rb").read_text())
 
 
 if __name__ == "__main__":
