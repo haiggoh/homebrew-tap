@@ -60,6 +60,21 @@ see the [project README](https://github.com/haiggoh/Claude-Code-Transcript-Disti
 
 After upgrading: `brew upgrade claude-code-transcript-distiller`.
 
+## iPhone Backup → Cloud
+
+```zsh
+brew install haiggoh/tap/mac-iphone-backup-cloudsync
+```
+
+Installs the prebuilt `iPhone Backup.app` (macOS 13+) under the formula's libexec and puts a
+`mac-iphone-backup-cloudsync` wrapper on your PATH. The app finds your newest local iPhone
+backup, packs it into one real `.zip` inside a cloud-synced folder, and can do that on a
+schedule without a window. Grant Full Disk Access on first run (the install caveats say where).
+See the [project README](https://github.com/haiggoh/mac-iphone-backup-cloudsync#readme).
+
+After upgrading: `brew upgrade mac-iphone-backup-cloudsync` — the hourly bump workflow below
+keeps the formula pointed at the newest release.
+
 ## Automatic formula updates
 
 `.github/workflows/bump-formulas.yml` checks every hour whether a formula's repo has a newer
