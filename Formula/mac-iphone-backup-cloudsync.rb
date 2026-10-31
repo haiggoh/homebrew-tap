@@ -8,7 +8,7 @@ class MacIphoneBackupCloudsync < Formula
   # Prebuilt ad-hoc-signed bundle (macOS 13+); building from source needs Xcode, so the
   # release asset ships the .app and this formula just installs it.
   def install
-    libexec.install "iPhone Backup.app"
+    libexec.install Dir["*.app"]
     (bin/"mac-iphone-backup-cloudsync").write <<~EOS
       #!/bin/sh
       exec "#{libexec}/iPhone Backup.app/Contents/MacOS/iPhoneBackup" "$@"
