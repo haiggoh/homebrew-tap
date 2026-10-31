@@ -1,5 +1,5 @@
 class MacIphoneBackupCloudsync < Formula
-  desc "Zip the newest local iPhone backup into a real archive inside a cloud-synced folder"
+  desc "Zip the newest local iPhone backup into a cloud-synced folder"
   homepage "https://github.com/haiggoh/mac-iphone-backup-cloudsync"
   url "https://github.com/haiggoh/mac-iphone-backup-cloudsync/releases/download/v1.0.0/mac-iphone-backup-cloudsync-1.0.0.tar.gz"
   sha256 "98abff6300c28ed7c16818d5c66389399fcfd6abf1cf8f0ffc9df74008720676"
