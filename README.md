@@ -1,4 +1,4 @@
-# haiggoh Homebrew Tap
+# 🚰 haiggoh Homebrew Tap
 
 Homebrew formulae for projects published by [haiggoh](https://github.com/haiggoh).
 
