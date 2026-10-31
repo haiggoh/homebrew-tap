@@ -2,7 +2,7 @@ class MacIphoneBackupCloudsync < Formula
   desc "Zip the newest local iPhone backup into a cloud-synced folder"
   homepage "https://github.com/haiggoh/mac-iphone-backup-cloudsync"
   url "https://github.com/haiggoh/mac-iphone-backup-cloudsync/releases/download/v1.0.0/mac-iphone-backup-cloudsync-1.0.0.tar.gz"
-  sha256 "98abff6300c28ed7c16818d5c66389399fcfd6abf1cf8f0ffc9df74008720676"
+  sha256 "51f79c2a3d2a2a57d5bec91e9af379908e2f621acf4f15b1d23d6111f8824fb9"
   license "MIT"
 
   # Prebuilt ad-hoc-signed bundle (macOS 13+); building from source needs Xcode, so the
