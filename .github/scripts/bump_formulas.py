@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""bump_formulas.py — point each Formula/*.rb at its repo's latest GitHub release asset.
+"""bump_formulas.py — point each Formula/*.rb at its repo's latest GitHub release.
 
 For every formula whose `url` is a release download of the form
   https://github.com/<owner>/<repo>/releases/download/v<X>/<name>-<X>.tar.gz
 it asks the GitHub API for <owner>/<repo>'s latest (non-draft, non-prerelease) release, and if
-that release carries an asset named <name>-<new>.tar.gz, rewrites `url` and `sha256` to it. The
-sha256 is computed from the downloaded asset, never trusted from anywhere else. Formulas that do
-not match the pattern are left alone and reported.
+that release carries an asset named <name>-<new>.tar.gz, rewrites `url` and `sha256` to it.
+For source-build formulas whose `url` is a tag archive of the form
+  https://github.com/<owner>/<repo>/archive/refs/tags/v<X>.tar.gz
+it rewrites `url`/`sha256` to the latest release's tag archive (refs/heads/... never matches).
+The sha256 is computed from the downloaded bytes, never trusted from anywhere else. Formulas
+that match neither pattern are left alone and reported.
 
 Usage:
   bump_formulas.py [--dry-run] [--formula NAME] [--tap-dir DIR]
@@ -37,6 +40,11 @@ from pathlib import Path
 URL_RE = re.compile(
     r'^(\s*url\s+")https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/releases/download/'
     r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)/(?P<name>[A-Za-z0-9_.\-]+?)-(?P=ver)\.tar\.gz(")', re.M)
+# Source-build formulas point at the git tag's archive instead of a release asset.
+# refs/heads/... is deliberately NOT matched — only version tags.
+ARCHIVE_URL_RE = re.compile(
+    r'^(\s*url\s+")https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/archive/refs/tags/'
+    r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)\.tar\.gz(")', re.M)
 SHA_RE = re.compile(r'^(\s*sha256\s+")[0-9a-f]{64}(")', re.M)
 
 
@@ -57,28 +65,36 @@ def bump(path: Path, dry_run: bool, get=_get, latest=latest_release) -> tuple[st
     """Return (report line, changed?). `get`/`latest` are injectable for tests."""
     text = path.read_text()
     m = URL_RE.search(text)
-    if not m:
-        return f"{path.stem}: skipped (url is not a GitHub release tarball)", False
+    mm = m or ARCHIVE_URL_RE.search(text)
+    if mm is None:
+        return f"{path.stem}: skipped (url is not a GitHub release tarball or tag source archive)", False
     if len(SHA_RE.findall(text)) != 1:
         return f"{path.stem}: ERROR expected exactly one sha256 line", False
-    rel = latest(m["owner"], m["repo"])
+    owner, repo, cur = mm["owner"], mm["repo"], mm["ver"]
+    rel = latest(owner, repo)
     tag = rel.get("tag_name", "")
     new = tag[1:] if tag.startswith("v") else tag
     if not re.fullmatch(r"[0-9][0-9A-Za-z.\-]*", new or ""):
         return f"{path.stem}: ERROR latest release tag {tag!r} is not a version", False
-    if new == m["ver"]:
+    if new == cur:
         return f"{path.stem}: up to date ({new})", False
-    asset = f"{m['name']}-{new}.tar.gz"
-    hit = next((a for a in rel.get("assets", []) if a.get("name") == asset), None)
-    if hit is None:
-        return f"{path.stem}: ERROR release {tag} has no asset {asset}", False
-    url = f"https://github.com/{m['owner']}/{m['repo']}/releases/download/{tag}/{asset}"
-    sha = hashlib.sha256(get(hit["browser_download_url"], "application/octet-stream")).hexdigest()
-    out = URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group(6)}", text, count=1)
+    if m:
+        asset = f"{m['name']}-{new}.tar.gz"
+        hit = next((a for a in rel.get("assets", []) if a.get("name") == asset), None)
+        if hit is None:
+            return f"{path.stem}: ERROR release {tag} has no asset {asset}", False
+        url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/{asset}"
+        sha = hashlib.sha256(get(hit["browser_download_url"], "application/octet-stream")).hexdigest()
+        out = URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group(6)}", text, count=1)
+    else:
+        # source archive of the tag: always exists for a published tag, no asset check
+        url = f"https://github.com/{owner}/{repo}/archive/refs/tags/{tag}.tar.gz"
+        sha = hashlib.sha256(get(url, "application/octet-stream")).hexdigest()
+        out = ARCHIVE_URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group(4)}", text, count=1)
     out = SHA_RE.sub(lambda mm: f"{mm.group(1)}{sha}{mm.group(2)}", out, count=1)
     if not dry_run:
         path.write_text(out)
-    return f"{path.stem}: {m['ver']} -> {new} (sha256 {sha[:12]}…){' [dry-run]' if dry_run else ''}", True
+    return f"{path.stem}: {cur} -> {new} (sha256 {sha[:12]}…){' [dry-run]' if dry_run else ''}", True
 
 
 def main(argv=None) -> int:

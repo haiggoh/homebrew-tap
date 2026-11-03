@@ -80,6 +80,57 @@ class Bump(unittest.TestCase):
         self.assertIn("ERROR", line)
 
 
+ARCHIVE_FORMULA = '''class Demo < Formula
+  desc "demo"
+  url "https://github.com/acme/demo/archive/refs/tags/v1.2.0.tar.gz"
+  sha256 "{sha}"
+  license "MIT"
+end
+'''.format(sha="0" * 64)
+ARCHIVE = b"source archive bytes"
+
+
+class ArchiveBump(unittest.TestCase):
+    """Formulas that build from the git tag's SOURCE archive (archive/refs/tags/vX.tar.gz)
+    bump to the latest release's tag archive; the sha256 comes from the downloaded archive
+    itself, never from the API. refs/heads/... must stay skipped."""
+
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp())
+        self.f = self.d / "demo.rb"
+        self.f.write_text(ARCHIVE_FORMULA)
+
+    def test_archive_url_bumps_to_latest_tag_archive(self):
+        line, changed = bf.bump(self.f, False, get=lambda u, a=None: ARCHIVE,
+                                latest=lambda o, r: {"tag_name": "v1.3.0", "assets": []})
+        self.assertTrue(changed, line)
+        out = self.f.read_text()
+        self.assertIn("/archive/refs/tags/v1.3.0.tar.gz", out)
+        self.assertIn(hashlib.sha256(ARCHIVE).hexdigest(), out)
+        self.assertNotIn("0" * 64, out)
+        self.assertIn('license "MIT"', out, "the rest of the formula is untouched")
+
+    def test_archive_up_to_date_writes_nothing(self):
+        line, changed = bf.bump(self.f, False, get=lambda *a: self.fail("downloaded"),
+                                latest=lambda o, r: {"tag_name": "v1.2.0", "assets": []})
+        self.assertFalse(changed)
+        self.assertEqual(self.f.read_text(), ARCHIVE_FORMULA)
+
+    def test_archive_dry_run_writes_nothing(self):
+        line, changed = bf.bump(self.f, True, get=lambda *a: ARCHIVE,
+                                latest=lambda o, r: {"tag_name": "v1.3.0", "assets": []})
+        self.assertTrue(changed)
+        self.assertIn("dry-run", line)
+        self.assertEqual(self.f.read_text(), ARCHIVE_FORMULA)
+
+    def test_refs_heads_archive_is_still_skipped(self):
+        self.f.write_text(ARCHIVE_FORMULA.replace("refs/tags/v1.2.0", "refs/heads/main"))
+        line, changed = bf.bump(self.f, False, get=lambda *a: ARCHIVE,
+                                latest=lambda o, r: {"tag_name": "v1.3.0", "assets": []})
+        self.assertFalse(changed)
+        self.assertIn("skipped", line)
+
+
 class MultiFormulaMain(unittest.TestCase):
     """main() over a tap dir must bump EVERY release-tarball formula independently and
     skip the rest — the 'all my formulae get the same treatment' contract."""

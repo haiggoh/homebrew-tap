@@ -80,21 +80,26 @@ After upgrading: `brew upgrade --cask echoprism`.
 brew install haiggoh/tap/mac-iphone-backup-cloudsync
 ```
 
-Installs the prebuilt `iPhone Backup.app` (macOS 13+) under the formula's libexec and puts a
-`mac-iphone-backup-cloudsync` wrapper on your PATH. The app finds your newest local iPhone
-backup, packs it into one real `.zip` inside a cloud-synced folder, and can do that on a
-schedule without a window. Grant Full Disk Access on first run (the install caveats say where).
-See the [project README](https://github.com/haiggoh/mac-iphone-backup-cloudsync#readme).
+Builds `iPhone Backup.app` (macOS 13+) **from the git tag's source archive** with the Command
+Line Tools — no full Xcode, no prebuilt download. `build.sh` compiles the Swift package and
+ad-hoc-signs the bundle locally, so the installed app has no quarantine xattr and launches
+without a Gatekeeper "unidentified developer" prompt. The app lands under the formula's
+libexec and a `mac-iphone-backup-cloudsync` wrapper goes on your PATH. The app finds your
+newest local iPhone backup, packs it into one real `.zip` inside a cloud-synced folder, and
+can do that on a schedule without a window. Grant Full Disk Access on first run (the install
+caveats say where). The prebuilt `.app` asset stays on the GitHub release page for direct
+download. See the [project README](https://github.com/haiggoh/mac-iphone-backup-cloudsync#readme).
 
 After upgrading: `brew upgrade mac-iphone-backup-cloudsync` — the hourly bump workflow below
-keeps the formula pointed at the newest release.
+keeps the formula pointed at the newest release (source-archive URLs included).
 
 ## Automatic formula updates
 
 `.github/workflows/bump-formulas.yml` checks **every formula in `Formula/`** each hour: any
-formula whose `url` is a GitHub release tarball is pointed at its repo's newest release
-(url + sha256, the hash computed from the downloaded file) and committed. A release therefore
-reaches `brew upgrade` within the hour with no manual step — all four formulae are covered, not
+formula whose `url` is a GitHub release tarball *or a tag source archive*
+(`archive/refs/tags/vX.tar.gz`) is pointed at its repo's newest release (url + sha256, the
+hash computed from the downloaded file) and committed. A release therefore
+reaches `brew upgrade` within the hour with no manual step — all formulae are covered, not
 just one. Run it right away with `gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap`
 (optionally `-f formula=<name>` for a single one; empty = all). Preview locally with
 `python3 .github/scripts/bump_formulas.py --dry-run`. The logic is
