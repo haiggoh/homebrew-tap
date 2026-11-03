@@ -60,6 +60,20 @@ see the [project README](https://github.com/haiggoh/Claude-Code-Transcript-Disti
 
 After upgrading: `brew upgrade claude-code-transcript-distiller`.
 
+## EchoPrism
+
+```zsh
+brew install --cask haiggoh/tap/echoprism
+```
+
+Local-first desktop app: one library, one queue, one play bar for YouTube videos and
+podcast episodes, with smart cross-stream linking and SponsorBlock. The dmg comes from
+the GitHub release of the matching `v*` tag. App data lives in
+`~/Library/Application Support/app.echoprism/` and is never touched by the cask
+(`zap` only removes caches, preferences and logs).
+
+After upgrading: `brew upgrade --cask echoprism`.
+
 ## iPhone Backup → Cloud
 
 ```zsh
