@@ -1,6 +1,6 @@
 cask "echoprism" do
-  version "0.1.7"
-  sha256 "eff2fca2c4e744b7afadf1d8a27116dfe41b1a870b64dbdbe9ce4162764ea8a9"
+  version "0.1.8"
+  sha256 "bf3dcb8f0b01b9384bfe6f78377025d243a7dec039ab8f72edf18662b9599459"
 
   url "https://github.com/haiggoh/echoprism/releases/download/v#{version}/EchoPrism_#{version}_aarch64.dmg"
   name "EchoPrism"
