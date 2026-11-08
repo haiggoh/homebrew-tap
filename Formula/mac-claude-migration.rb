@@ -24,6 +24,9 @@ class MacClaudeMigration < Formula
   end
 
   test do
+    require "tmpdir"
+    require "shellwords"
+
     assert_predicate bin/"mac-claude-backup", :executable?
     assert_predicate bin/"mac-claude-restore", :executable?
     assert_equal version.to_s, (libexec/"VERSION").read.strip
@@ -33,5 +36,29 @@ class MacClaudeMigration < Formula
                  shell_output("#{bin}/mac-claude-backup --help").lines.first
     assert_equal "📦 restore.sh — rebuild the Claude Code setup on the NEW Mac from an archive\n",
                  shell_output("#{bin}/mac-claude-restore --help").lines.first
+
+    # The url must stay in the form the tap's hourly bump-formulas workflow recognises
+    # (ARCHIVE_URL_RE in .github/scripts/bump_formulas.py): any other downloadable
+    # tarball installs fine but silently stops future releases reaching `brew upgrade`.
+    assert_match %r{\Ahttps://github\.com/[^/]+/[^/]+/archive/refs/tags/v[0-9][0-9A-Za-z.\-]*\.tar\.gz\z}, self.class.url
+
+    # Run the REAL installed command from its install location with an empty HOME:
+    # backup.sh resolves its sibling VERSION from its own path, so the archive must
+    # carry TOOL_VERSION=<release version>, not "dev". This goes RED if a wrapper
+    # execs a copy outside libexec (e.g. in bin/) or is a stub that never runs it.
+    fake_home = Dir.mktmpdir
+    out = Dir.mktmpdir
+    old_home = ENV["HOME"]
+    ENV["HOME"] = fake_home
+    begin
+      ran = system "#{bin}/mac-claude-backup", out
+    ensure
+      ENV["HOME"] = old_home
+    end
+    assert ran, "mac-claude-backup exited non-zero"
+    archive = Dir[File.join(out, "claude-migration-*.tar.gz")].first
+    assert archive, "mac-claude-backup wrote no archive"
+    meta = `tar xzf #{Shellwords.escape(archive)} -O meta.env 2>/dev/null`
+    assert_includes meta, "TOOL_VERSION=#{version}"
   end
 end
