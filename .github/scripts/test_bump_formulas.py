@@ -109,6 +109,9 @@ class ArchiveBump(unittest.TestCase):
         self.assertIn(hashlib.sha256(ARCHIVE).hexdigest(), out)
         self.assertNotIn("0" * 64, out)
         self.assertIn('license "MIT"', out, "the rest of the formula is untouched")
+        # exact line, closing quote included — a substring check alone let the
+        # group(4)/group("quote") mix-up ship a mangled url line (2026-11-08)
+        self.assertIn('  url "https://github.com/acme/demo/archive/refs/tags/v1.3.0.tar.gz"', out)
 
     def test_archive_up_to_date_writes_nothing(self):
         line, changed = bf.bump(self.f, False, get=lambda *a: self.fail("downloaded"),
