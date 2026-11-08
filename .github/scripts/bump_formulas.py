@@ -44,7 +44,7 @@ URL_RE = re.compile(
 # refs/heads/... is deliberately NOT matched — only version tags.
 ARCHIVE_URL_RE = re.compile(
     r'^(\s*url\s+")https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/archive/refs/tags/'
-    r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)\.tar\.gz(")', re.M)
+    r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)\.tar\.gz(?P<quote>")', re.M)
 SHA_RE = re.compile(r'^(\s*sha256\s+")[0-9a-f]{64}(")', re.M)
 
 
@@ -90,7 +90,10 @@ def bump(path: Path, dry_run: bool, get=_get, latest=latest_release) -> tuple[st
         # source archive of the tag: always exists for a published tag, no asset check
         url = f"https://github.com/{owner}/{repo}/archive/refs/tags/{tag}.tar.gz"
         sha = hashlib.sha256(get(url, "application/octet-stream")).hexdigest()
-        out = ARCHIVE_URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group(4)}", text, count=1)
+        # group("quote") is the closing quote — group(4) is `ver`; using it mangled
+        # the url line into `...vX.tar.gz<old-ver>` with no closing quote (2026-11-08,
+        # pinned by the exact-line assertion in test_bump_formulas.py).
+        out = ARCHIVE_URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group('quote')}", text, count=1)
     out = SHA_RE.sub(lambda mm: f"{mm.group(1)}{sha}{mm.group(2)}", out, count=1)
     if not dry_run:
         path.write_text(out)
