@@ -40,7 +40,8 @@ class MacClaudeMigration < Formula
     # The url must stay in the form the tap's hourly bump-formulas workflow recognises
     # (ARCHIVE_URL_RE in .github/scripts/bump_formulas.py): any other downloadable
     # tarball installs fine but silently stops future releases reaching `brew upgrade`.
-    assert_match %r{\Ahttps://github\.com/[^/]+/[^/]+/archive/refs/tags/v[0-9][0-9A-Za-z.\-]*\.tar\.gz\z}, self.class.url
+    url_re = %r{\Ahttps://github\.com/[^/]+/[^/]+/archive/refs/tags/v[0-9][0-9A-Za-z.-]*\.tar\.gz\z}
+    assert_match url_re, self.class.url
 
     # Run the REAL installed command from its install location with an empty HOME:
     # backup.sh resolves its sibling VERSION from its own path, so the archive must
@@ -48,7 +49,7 @@ class MacClaudeMigration < Formula
     # execs a copy outside libexec (e.g. in bin/) or is a stub that never runs it.
     fake_home = Dir.mktmpdir
     out = Dir.mktmpdir
-    old_home = ENV["HOME"]
+    old_home = Dir.home
     ENV["HOME"] = fake_home
     begin
       ran = system "#{bin}/mac-claude-backup", out
