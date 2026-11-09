@@ -1,8 +1,8 @@
 class MotionPipeline < Formula
   desc "Reusable kinetic-typography render pipeline with a no-code project menu (10-bit masters)"
   homepage "https://github.com/haiggoh/motion-pipeline"
-  url "https://github.com/haiggoh/motion-pipeline/archive/refs/tags/v0.2.0.tar.gz"
-  sha256 "acaf0f83b9c63fa468979be2f05c0ea7d856cdb1f62030a07a47e3e9875b90bf"
+  url "https://github.com/haiggoh/motion-pipeline/archive/refs/tags/v0.3.0.tar.gz"
+  sha256 "dcd005985c41b105500435672048cb0b112737e80cf23c49e80d23eeadc8b479"
   license "Apache-2.0"
 
   depends_on "python@3.14"
