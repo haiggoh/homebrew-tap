@@ -3,8 +3,8 @@ class MotionPipeline < Formula
   homepage "https://github.com/haiggoh/motion-pipeline"
   # release asset built with `git archive` (deterministic); the auto-generated
   # archive/refs/tags tarball is NOT byte-stable across downloads
-  url "https://github.com/haiggoh/motion-pipeline/releases/download/v0.4.0/mp-0.4.0.tar.gz"
-  sha256 "5027d1808af00c6cb79848354e5f661555f617cd2cd9feec824878b89749ba6c"
+  url "https://github.com/haiggoh/motion-pipeline/releases/download/v0.4.1/mp-0.4.1.tar.gz"
+  sha256 "375d9f372b33b40a26595755629c5f45fc686edd5357a8271058b1d8473cf6ac"
   license "Apache-2.0"
 
   depends_on "python@3.14"
@@ -23,7 +23,11 @@ class MotionPipeline < Formula
       if [ ! -x "$venv/bin/python" ]; then
         mkdir -p "$(dirname "$venv")"
         "#{Formula["python@3.14"].opt_bin}/python3.14" -m venv "$venv"
-        "$venv/bin/pip" install --quiet textual numpy
+        # install ALL runtime deps from the shipped pyproject (not a hardcoded subset —
+        # v0.4.0 shipped pillow in pyproject but the launcher installed only textual+numpy,
+        # so the font menu crashed with ModuleNotFoundError: PIL)
+        deps="$("$venv/bin/python" -c 'import tomllib; print(" ".join(tomllib.load(open("'"#{opt_libexec}"'/pyproject.toml", "rb"))["project"]["dependencies"]))')"
+        "$venv/bin/pip" install --quiet $deps
       fi
       PYTHONPATH="#{opt_libexec}" exec "$venv/bin/python" -m motion_pipeline "$@"
     EOS
