@@ -1,8 +1,8 @@
 class MotionPipeline < Formula
   desc "Reusable kinetic-typography render pipeline with a no-code project menu (10-bit masters)"
   homepage "https://github.com/haiggoh/motion-pipeline"
-  url "https://github.com/haiggoh/motion-pipeline/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "df9e20353b2fbd3285b3ba1412fe2149e737092675533e1e2d4ba1edad5e14bd"
+  url "https://github.com/haiggoh/motion-pipeline/archive/refs/tags/v0.1.2.tar.gz"
+  sha256 "c786b488ae6707bf8043a714614cb399e370fd3f9c32ed82f4a65fc8047b809c"
   license "Apache-2.0"
 
   depends_on "python@3.14"
@@ -13,16 +13,17 @@ class MotionPipeline < Formula
 
     (bin/"motion-pipeline").write <<~EOS
       #!/bin/bash
-      # motion-pipeline launcher: keeps a per-user venv under the Homebrew cache and
-      # installs the shipped package into it on first run (read-only on the formula).
+      # motion-pipeline launcher: keeps a per-user venv under the Homebrew cache with the
+      # runtime deps, and runs the shipped package straight from libexec via PYTHONPATH
+      # (no build step — the package uses uv_build, which we don't want to require here).
       set -euo pipefail
       venv="$HOME/.cache/homebrew/motion-pipeline/venv"
       if [ ! -x "$venv/bin/python" ]; then
         mkdir -p "$(dirname "$venv")"
-        "#{Formula["python@3.14"].opt_bin}/python3" -m venv "$venv"
-        "$venv/bin/pip" install --quiet "#{opt_libexec}"
+        "#{Formula["python@3.14"].opt_bin}/python3.14" -m venv "$venv"
+        "$venv/bin/pip" install --quiet textual numpy
       fi
-      exec "$venv/bin/python" -m motion_pipeline "$@"
+      PYTHONPATH="#{opt_libexec}" exec "$venv/bin/python" -m motion_pipeline "$@"
     EOS
   end
 
