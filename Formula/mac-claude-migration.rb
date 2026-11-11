@@ -3,8 +3,8 @@ class MacClaudeMigration < Formula
   homepage "https://github.com/haiggoh/mac-claude-migration"
   # Tag source archive (not a release asset) so the tap's hourly bump-formulas
   # workflow repoints this url+sha256 at each new release automatically.
-  url "https://github.com/haiggoh/mac-claude-migration/archive/refs/tags/v0.2.0.tar.gz"
-  sha256 "4748eae59902a10bd334c0a74203165826770711eb35ed97c07982f4fed33627"
+  url "https://github.com/haiggoh/mac-claude-migration/archive/refs/tags/v0.2.1.tar.gz"
+  sha256 "ff91b783d01d27b6a432a78d034f92b202d557745fecf88c63283ba553063567"
   license "MIT"
 
   depends_on :macos
@@ -21,6 +21,11 @@ class MacClaudeMigration < Formula
       #!/bin/sh
       exec "#{libexec}/restore.sh" "$@"
     EOS
+    # The front-door command: the package name itself is runnable.
+    (bin/"mac-claude-migration").write <<~EOS
+      #!/bin/sh
+      exec "#{libexec}/mac-claude-migration.sh" "$@"
+    EOS
   end
 
   test do
@@ -29,6 +34,16 @@ class MacClaudeMigration < Formula
 
     assert_predicate bin/"mac-claude-backup", :executable?
     assert_predicate bin/"mac-claude-restore", :executable?
+    assert_predicate bin/"mac-claude-migration", :executable?
+    # Front-door overview names both real commands and carries the release version
+    # (the wrapper reads its sibling VERSION, so it must run from libexec).
+    assert_equal "📦 mac-claude-migration #{version} — front door for the two commands:\n",
+                 shell_output("#{bin}/mac-claude-migration --help").lines.first
+    assert_includes shell_output("#{bin}/mac-claude-migration --help"), "mac-claude-backup"
+    assert_includes shell_output("#{bin}/mac-claude-migration --help"), "mac-claude-restore"
+    # Pass-through reaches the real script: its --help first line must match exactly.
+    assert_equal shell_output("#{bin}/mac-claude-backup --help").lines.first,
+                 shell_output("#{bin}/mac-claude-migration backup --help").lines.first
     assert_equal version.to_s, (libexec/"VERSION").read.strip
     # Exact first usage lines, copied from `./backup.sh --help` / `./restore.sh --help`
     # in the mac-claude-migration checkout (2026-11-08) — not restated from memory.
