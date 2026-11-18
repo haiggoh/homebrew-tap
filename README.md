@@ -107,4 +107,6 @@ just one. Run it right away with `gh workflow run bump-formulas.yml -R haiggoh/h
 discovery test — run first in the workflow. The commit/push step is
 `.github/scripts/push_bump.sh` (`--help`): it rebases onto the current `main` before pushing,
 so overlapping runs (hourly schedule + manual dispatch) cannot reject each other's push; its
-offline race tests run in the same offline-tests step.
+offline race tests run in the same offline-tests step. Pull requests to `main` trigger the same
+workflow but run **only the offline tests** — the bump/push steps are skipped on
+`pull_request` events (a PR's token is read-only), so every PR gets a green/red test gate.
