@@ -2,10 +2,10 @@
 #
 # Runs IN this tap, so it needs no cross-repo secret: the default GITHUB_TOKEN can push here, and
 # the source repos are public, so reading their releases needs nothing extra.
-#   - hourly, so a release made anywhere reaches `brew upgrade` within the hour
+#   - every 15 minutes, so a release made anywhere reaches `brew upgrade` within 15 minutes
 #   - on demand (Actions tab → Run workflow, or `gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap`)
 #   - on `repository_dispatch` type `release-published`, for a source repo that wants it instant
-#     (it then needs a token with access to this tap; not required for the hourly path)
+#     (it then needs a token with access to this tap; not required for the scheduled path)
 # The sha256 is computed from the downloaded asset. Offline tests run first; a failing test or a
 # release without its tarball stops the bump instead of writing a bad formula.
 # The push step (.github/scripts/push_bump.sh) rebases onto origin/main before pushing, so a
@@ -16,7 +16,7 @@ name: bump formulas
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       formula:
