@@ -2,3 +2,7 @@
 *.swp
 *.swo
 *~
+
+# Python bytecode caches — local test runs regenerate them; never track
+__pycache__/
+*.pyc
