@@ -95,11 +95,11 @@ keeps the formula pointed at the newest release (source-archive URLs included).
 
 ## Automatic formula updates
 
-`.github/workflows/bump-formulas.yml` checks **every formula in `Formula/`** each hour: any
+`.github/workflows/bump-formulas.yml` checks **every formula in `Formula/`** every 15 minutes: any
 formula whose `url` is a GitHub release tarball *or a tag source archive*
 (`archive/refs/tags/vX.tar.gz`) is pointed at its repo's newest release (url + sha256, the
 hash computed from the downloaded file) and committed. A release therefore
-reaches `brew upgrade` within the hour with no manual step — all formulae are covered, not
+reaches `brew upgrade` within 15 minutes with no manual step — all formulae are covered, not
 just one. Run it right away with `gh workflow run bump-formulas.yml -R haiggoh/homebrew-tap`
 (optionally `-f formula=<name>` for a single one; empty = all). Preview locally with
 `python3 .github/scripts/bump_formulas.py --dry-run`. The logic is
