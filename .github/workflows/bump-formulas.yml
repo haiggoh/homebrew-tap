@@ -8,6 +8,8 @@
 #     (it then needs a token with access to this tap; not required for the hourly path)
 # The sha256 is computed from the downloaded asset. Offline tests run first; a failing test or a
 # release without its tarball stops the bump instead of writing a bad formula.
+# The push step (.github/scripts/push_bump.sh) rebases onto origin/main before pushing, so a
+# concurrent run in the same concurrency group cannot make this one's push fail (run 44092258642).
 name: bump formulas
 
 on:
@@ -37,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Offline tests
-        run: python3 .github/scripts/test_bump_formulas.py
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 
       - name: Bump formulas to the latest releases
         id: bump
@@ -53,12 +55,4 @@ jobs:
 
       - name: Commit and push
         if: steps.bump.outputs.changed != ''
-        env:
-          CHANGED: ${{ steps.bump.outputs.changed }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/
-          msg=$(grep -E ' -> ' bump.log | sed 's/ (sha256.*//' | paste -sd ';' - | sed 's/;/; /g')
-          git commit -m "bump: $msg" -m "Automated by .github/workflows/bump-formulas.yml"
-          git push
+        run: bash .github/scripts/push_bump.sh --bump-log bump.log

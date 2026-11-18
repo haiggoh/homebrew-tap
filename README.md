@@ -104,4 +104,7 @@ just one. Run it right away with `gh workflow run bump-formulas.yml -R haiggoh/h
 (optionally `-f formula=<name>` for a single one; empty = all). Preview locally with
 `python3 .github/scripts/bump_formulas.py --dry-run`. The logic is
 `.github/scripts/bump_formulas.py` (`--help`); its offline tests — including a multi-formula
-discovery test — run first in the workflow.
+discovery test — run first in the workflow. The commit/push step is
+`.github/scripts/push_bump.sh` (`--help`): it rebases onto the current `main` before pushing,
+so overlapping runs (hourly schedule + manual dispatch) cannot reject each other's push; its
+offline race tests run in the same offline-tests step.
