@@ -1,8 +1,8 @@
 class FreeAgents < Formula
   desc "Run Claude Code on free inference: local MLX models and free cloud APIs"
   homepage "https://github.com/haiggoh/free-agents"
-  url "https://github.com/haiggoh/free-agents/releases/download/v0.59.8/free-agents-0.59.8.tar.gz"
-  sha256 "d4b79100644fc4dde18abd4a9895d8642bacdcd3f48b3a2ad8b37b12193c7dc0"
+  url "https://github.com/haiggoh/free-agents/releases/download/v0.59.9/free-agents-0.59.9.tar.gz"
+  sha256 "16f5fc915be54b8ba4de4f2211b3bfd73bdfeeae5d4ccc8c3b2c604917c38ade"
   license "MIT"
 
   # csl and the launchers need bash 4+ (associative arrays); macOS ships bash 3.2.
