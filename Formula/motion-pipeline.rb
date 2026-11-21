@@ -9,6 +9,7 @@ class MotionPipeline < Formula
 
   depends_on "python@3.14"
   depends_on "ffmpeg"
+  depends_on "whisper-cpp" # speech engine for the transcript aligner (0.7.0: model self-installs)
 
   def install
     libexec.install Dir["*"]
@@ -20,16 +21,23 @@ class MotionPipeline < Formula
       # (no build step — the package uses uv_build, which we don't want to require here).
       set -euo pipefail
       venv="$HOME/.cache/homebrew/motion-pipeline/venv"
-      if [ ! -x "$venv/bin/python" ]; then
+      py314="#{Formula["python@3.14"].opt_bin}/python3.14"
+      # install ALL runtime deps from the shipped pyproject (not a hardcoded subset —
+      # v0.4.0 shipped pillow in pyproject but the launcher installed only textual+numpy,
+      # so the font menu crashed with ModuleNotFoundError: PIL). The stamp is the sha256
+      # of the dependency LIST: a brew upgrade that adds a dep (e.g. 0.7.0's pypdf) resyncs
+      # the existing venv instead of leaving it stale.
+      deps_py="$venv/bin/python"
+      [ -x "$deps_py" ] || deps_py="$py314"
+      deps="$("$deps_py" -c 'import tomllib; print(" ".join(tomllib.load(open("'"#{opt_libexec}"'/pyproject.toml", "rb"))["project"]["dependencies"]))')"
+      stamp="$(printf '%s' "$deps" | shasum -a 256 | cut -d' ' -f1)"
+      if [ ! -x "$venv/bin/python" ] || [ "$(cat "$venv/.mp-deps" 2>/dev/null)" != "$stamp" ]; then
         mkdir -p "$(dirname "$venv")"
-        "#{Formula["python@3.14"].opt_bin}/python3.14" -m venv "$venv"
-        # install ALL runtime deps from the shipped pyproject (not a hardcoded subset —
-        # v0.4.0 shipped pillow in pyproject but the launcher installed only textual+numpy,
-        # so the font menu crashed with ModuleNotFoundError: PIL)
-        deps="$("$venv/bin/python" -c 'import tomllib; print(" ".join(tomllib.load(open("'"#{opt_libexec}"'/pyproject.toml", "rb"))["project"]["dependencies"]))')"
+        [ -x "$venv/bin/python" ] || "$py314" -m venv "$venv"
         "$venv/bin/pip" install --quiet $deps
+        printf '%s' "$stamp" > "$venv/.mp-deps"
       fi
-      PYTHONPATH="#{opt_libexec}" exec "$venv/bin/python" -m motion_pipeline "$@"
+      PYTHONPATH="#{opt_libexec}" exec "$venv/bin/python" -P -m motion_pipeline "$@"
     EOS
   end
 
