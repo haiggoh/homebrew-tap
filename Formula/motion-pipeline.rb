@@ -9,7 +9,9 @@ class MotionPipeline < Formula
 
   depends_on "python@3.14"
   depends_on "ffmpeg"
-  depends_on "whisper-cpp" # speech engine for the transcript aligner (0.7.0: model self-installs)
+  # whisper-cpp is OPTIONAL: the app self-installs the speech engine into the user cache on
+  # first launch (source build via Command Line Tools — no Homebrew needed). Brew users who
+  # prefer the packaged engine can still: brew install whisper-cpp
 
   def install
     libexec.install Dir["*"]
