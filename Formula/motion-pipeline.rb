@@ -23,7 +23,22 @@ class MotionPipeline < Formula
       # (no build step — the package uses uv_build, which we don't want to require here).
       set -euo pipefail
       venv="$HOME/.cache/homebrew/motion-pipeline/venv"
+      # python >= 3.11 for the venv: brew's python@3.14 first; else any python3.14/python3 on
+      # PATH; else a uv-managed python (uv tool install --python 3.14). Never a hard failure
+      # when the user has another python provider.
       py314="#{Formula["python@3.14"].opt_bin}/python3.14"
+      if [ ! -x "$py314" ]; then
+        if command -v python3.14 >/dev/null 2>&1; then py314="$(command -v python3.14)"
+        elif command -v uv >/dev/null 2>&1 && uv python find 3.14 >/dev/null 2>&1; then
+          py314="$(uv python find 3.14)"
+        elif command -v python3 >/dev/null 2>&1 && \
+             "$(command -v python3)" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+          py314="$(command -v python3)"
+        else
+          echo "motion-pipeline: no python >= 3.11 found — brew install python@3.14, or install uv and run: uv python install 3.14" >&2
+          exit 2
+        fi
+      fi
       # install ALL runtime deps from the shipped pyproject (not a hardcoded subset —
       # v0.4.0 shipped pillow in pyproject but the launcher installed only textual+numpy,
       # so the font menu crashed with ModuleNotFoundError: PIL). The stamp is the sha256
