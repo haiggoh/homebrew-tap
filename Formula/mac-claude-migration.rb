@@ -3,8 +3,8 @@ class MacClaudeMigration < Formula
   homepage "https://github.com/haiggoh/mac-claude-migration"
   # Tag source archive (not a release asset) so the tap's hourly bump-formulas
   # workflow repoints this url+sha256 at each new release automatically.
-  url "https://github.com/haiggoh/mac-claude-migration/archive/refs/tags/v0.3.0.tar.gz"
-  sha256 "6957284db104a50c2d0b06301d593c1428ea2a2bee4870788687e5ba5f628386"
+  url "https://github.com/haiggoh/mac-claude-migration/archive/refs/tags/v0.3.1.tar.gz"
+  sha256 "53e76d3708bc105c1356683623328b651b9fdffeb61e48f6ec481246ee43053a"
   license "MIT"
 
   depends_on :macos
