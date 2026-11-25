@@ -3,8 +3,8 @@ class MotionPipeline < Formula
   homepage "https://github.com/haiggoh/motion-pipeline"
   # release asset built with `git archive` (deterministic); the auto-generated
   # archive/refs/tags tarball is NOT byte-stable across downloads
-  url "https://github.com/haiggoh/motion-pipeline/releases/download/v0.8.2/mp-0.8.2.tar.gz"
-  sha256 "7e9c18f0aa5ac31510e83cb6a417adf602eca3240117248ab0224f61cdeb51df"
+  url "https://github.com/haiggoh/motion-pipeline/releases/download/v0.8.3/mp-0.8.3.tar.gz"
+  sha256 "027621c34e936a44c4d23a6357a808baad3feef58be0eeaaefef8eb44b1f516b"
   license "Apache-2.0"
 
   depends_on "python@3.14"
