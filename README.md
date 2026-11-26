@@ -93,6 +93,22 @@ download. See the [project README](https://github.com/haiggoh/mac-iphone-backup-
 After upgrading: `brew upgrade mac-iphone-backup-cloudsync` — the hourly bump workflow below
 keeps the formula pointed at the newest release (source-archive URLs included).
 
+## motion-pipeline
+
+```zsh
+brew install haiggoh/tap/motion-pipeline
+motion-pipeline --version
+motion-pipeline --setup-render   # pinned render toolchain into the user cache (dry-run: --dry-run)
+motion-pipeline                   # interactive project menu (steps 0-7)
+```
+
+No-code motion-graphics render pipeline: transcript → chapters/pages → kinetic-typography
+scenes → 10-bit ProRes masters via hyperframes, with zone/chroma/font gates and a render
+diagnostic report. The formula is bumped automatically on every release (url + sha256 of the
+release asset), so `brew upgrade motion-pipeline` picks up new versions. It also appears in
+the get-haiggoh interactive menu (`catalog/related-tools.json` in haiggoh/get-haiggoh) as a
+runnable entry. See the [project README](https://github.com/haiggoh/motion-pipeline#readme).
+
 ## Automatic formula updates
 
 `.github/workflows/bump-formulas.yml` checks **every formula in `Formula/`** every 15 minutes: any
