@@ -114,7 +114,12 @@ class PushRace(unittest.TestCase):
         r = git(s.loser, "push", "origin", "main", check=False)
         self.assertNotEqual(r.returncode, 0,
                             "bare push unexpectedly succeeded: " + r.stdout + r.stderr)
-        self.assertIn("rejected", r.stderr)
+        # The refusal can come from git itself ("! [rejected] main -> main (fetch first)")
+        # or from a pre-push guard installed on the dev machine: watch-your-step registers
+        # hook.wys-push-guard globally and fires it only when $CLAUDECODE is set, so hooked
+        # sessions see "refused force-pushing" while CI sees only git's "rejected".
+        # Either wording proves the bare push was blocked (2026-11-28).
+        self.assertRegex(r.stderr, r"rejected|refused force-pushing")
         self.assertEqual(s.origin_tip(), winner_tip, "a rejected push must not move origin/main")
 
     def test_push_bump_lands_when_no_concurrent_push(self):
