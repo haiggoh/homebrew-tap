@@ -3,8 +3,8 @@ require "json"
 class ClaudeCodeTranscriptDistiller < Formula
   desc "Distill Claude Code transcripts into compact evidence and indexed handoffs"
   homepage "https://github.com/haiggoh/Claude-Code-Transcript-Distiller"
-  url "https://github.com/haiggoh/Claude-Code-Transcript-Distiller/releases/download/v0.8.4/claude-code-transcript-distiller-0.8.4.tar.gz"
-  sha256 "2127d4feb538195c571fdf0b8dc3f292ae79b8283fe33b19a4f2ceaa2f2336a1"
+  url "https://github.com/haiggoh/Claude-Code-Transcript-Distiller/releases/download/v0.9.0/claude-code-transcript-distiller-0.9.0.tar.gz"
+  sha256 "aac0e8bb8bc2bb6ae0cc518d898d88583ce8bd9c013e33029887ba686db33e10"
   license "MIT"
 
   depends_on "python@3.14"
