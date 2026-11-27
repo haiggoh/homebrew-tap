@@ -200,5 +200,64 @@ class MultiFormulaMain(unittest.TestCase):
         self.assertIn("v1.0.0/alpha-1.0.0.tar.gz", (fx / "alpha.rb").read_text())
 
 
+class TolerantTags(unittest.TestCase):
+    """Any tag carrying a trailing version must bump: v1.3.0, 1.3.0, cc-transcript-v1.3.0,
+    release-1.3.0-rc1. Non-version tags (nightly) stay refused. The written url keeps the FULL
+    tag and must still parse on the NEXT bump — the old v-only URL_RE lost non-v formulas after
+    one bump and rejected prefixed tags outright (2026-11-27, distiller stuck at 0.8.4)."""
+
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp())
+        self.f = self.d / "demo.rb"
+        self.f.write_text(FORMULA)
+
+    def bump_with(self, tag, asset="demo-1.3.0.tar.gz"):
+        return bf.bump(self.f, False, get=lambda u, a=None: ASSET,
+                       latest=fake_latest(tag, asset))
+
+    def test_version_from_tag(self):
+        self.assertEqual(bf.version_from_tag("v1.2.3"), "1.2.3")
+        self.assertEqual(bf.version_from_tag("1.2.3"), "1.2.3")
+        self.assertEqual(bf.version_from_tag("cc-transcript-v0.9.0"), "0.9.0")
+        self.assertEqual(bf.version_from_tag("release-2.0.0-rc1"), "2.0.0-rc1")
+        self.assertIsNone(bf.version_from_tag("nightly"))
+        self.assertIsNone(bf.version_from_tag(""))
+
+    def test_prefixed_tag_bumps_and_keeps_full_tag_in_url(self):
+        line, changed = self.bump_with("cc-transcript-v1.3.0")
+        self.assertTrue(changed, line)
+        out = self.f.read_text()
+        self.assertIn("/download/cc-transcript-v1.3.0/demo-1.3.0.tar.gz", out)
+        self.assertIn(hashlib.sha256(ASSET).hexdigest(), out)
+        self.assertNotIn("0" * 64, out)
+
+    def test_bare_tag_bumps_and_next_bump_still_parses(self):
+        line, changed = self.bump_with("1.3.0")
+        self.assertTrue(changed, line)
+        self.assertIn("/download/1.3.0/demo-1.3.0.tar.gz", self.f.read_text())
+        # round-trip: the bumped formula (no literal v in the url) must still be parsed
+        line2, changed2 = bf.bump(self.f, False, get=lambda u, a=None: ASSET,
+                                  latest=fake_latest("1.4.0", "demo-1.4.0.tar.gz"))
+        self.assertTrue(changed2, line2)
+        self.assertIn("/download/1.4.0/demo-1.4.0.tar.gz", self.f.read_text())
+
+    def test_non_version_prefixed_tag_is_refused(self):
+        line, changed = self.bump_with("nightly-build")
+        self.assertFalse(changed)
+        self.assertIn("ERROR", line)
+        self.assertEqual(self.f.read_text(), FORMULA)
+
+    def test_archive_tag_round_trips_without_v(self):
+        self.f.write_text(ARCHIVE_FORMULA)
+        line, changed = bf.bump(self.f, False, get=lambda u, a=None: ARCHIVE,
+                                latest=lambda o, r: {"tag_name": "pkg-2.0.0", "assets": []})
+        self.assertTrue(changed, line)
+        self.assertIn("/archive/refs/tags/pkg-2.0.0.tar.gz", self.f.read_text())
+        line2, changed2 = bf.bump(self.f, False, get=lambda u, a=None: ARCHIVE,
+                                  latest=lambda o, r: {"tag_name": "2.1.0", "assets": []})
+        self.assertTrue(changed2, line2)
+        self.assertIn("/archive/refs/tags/2.1.0.tar.gz", self.f.read_text())
+
+
 if __name__ == "__main__":
     unittest.main()
