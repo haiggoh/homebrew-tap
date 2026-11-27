@@ -2,11 +2,13 @@
 """bump_formulas.py — point each Formula/*.rb at its repo's latest GitHub release.
 
 For every formula whose `url` is a release download of the form
-  https://github.com/<owner>/<repo>/releases/download/v<X>/<name>-<X>.tar.gz
-it asks the GitHub API for <owner>/<repo>'s latest (non-draft, non-prerelease) release, and if
-that release carries an asset named <name>-<new>.tar.gz, rewrites `url` and `sha256` to it.
+  https://github.com/<owner>/<repo>/releases/download/<tag>/<name>-<X>.tar.gz
+the tag may have ANY shape (v<X>, <X>, <prefix>-v<X>); the current version X is read from the
+asset filename. It asks the GitHub API for <owner>/<repo>'s latest (non-draft, non-prerelease)
+release, extracts the trailing version token of its tag the same way, and if that release
+carries an asset named <name>-<new>.tar.gz, rewrites `url` (keeping the full tag) and `sha256`.
 For source-build formulas whose `url` is a tag archive of the form
-  https://github.com/<owner>/<repo>/archive/refs/tags/v<X>.tar.gz
+  https://github.com/<owner>/<repo>/archive/refs/tags/<tag>.tar.gz
 it rewrites `url`/`sha256` to the latest release's tag archive (refs/heads/... never matches).
 The sha256 is computed from the downloaded bytes, never trusted from anywhere else. Formulas
 that match neither pattern are left alone and reported.
@@ -37,15 +39,27 @@ import sys
 import urllib.request
 from pathlib import Path
 
+# The tag in a formula url is free-form (v1.2.0, 1.2.0, cc-transcript-v1.2.0, release-2.0.0-rc1):
+# capture the whole tag; the current version comes from the asset filename (release urls) or the
+# tag's trailing version token (archive urls). A literal "v" here is what rejected prefixed tags
+# outright and lost bare-tag formulas after one bump (2026-11-27: distiller stuck at 0.8.4).
 URL_RE = re.compile(
     r'^(\s*url\s+")https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/releases/download/'
-    r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)/(?P<name>[A-Za-z0-9_.\-]+?)-(?P=ver)\.tar\.gz(")', re.M)
+    r'(?P<tag>[^/"]+)/(?P<name>[A-Za-z0-9_.\-]+?)-(?P<ver>[0-9][0-9A-Za-z.\-]*)\.tar\.gz(?P<quote>")', re.M)
 # Source-build formulas point at the git tag's archive instead of a release asset.
-# refs/heads/... is deliberately NOT matched — only version tags.
+# refs/heads/... is deliberately NOT matched — only refs/tags.
 ARCHIVE_URL_RE = re.compile(
     r'^(\s*url\s+")https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/archive/refs/tags/'
-    r'v(?P<ver>[0-9][0-9A-Za-z.\-]*)\.tar\.gz(?P<quote>")', re.M)
+    r'(?P<tag>[^/"]+)\.tar\.gz(?P<quote>")', re.M)
 SHA_RE = re.compile(r'^(\s*sha256\s+")[0-9a-f]{64}(")', re.M)
+# Trailing version token of a tag: v1.2.3, 1.2.3, cc-transcript-v0.9.0, release-2.0.0-rc1.
+TAG_VERSION_RE = re.compile(r'v?(\d+(?:\.\d+)*(?:[-.][0-9A-Za-z][0-9A-Za-z.\-]*)?)$')
+
+
+def version_from_tag(tag: str):
+    """The trailing version of a git tag, or None for non-version tags (nightly, latest)."""
+    m = TAG_VERSION_RE.search(tag or "")
+    return m.group(1) if m else None
 
 
 def _get(url: str, accept: str = "application/vnd.github+json") -> bytes:
@@ -70,11 +84,14 @@ def bump(path: Path, dry_run: bool, get=_get, latest=latest_release) -> tuple[st
         return f"{path.stem}: skipped (url is not a GitHub release tarball or tag source archive)", False
     if len(SHA_RE.findall(text)) != 1:
         return f"{path.stem}: ERROR expected exactly one sha256 line", False
-    owner, repo, cur = mm["owner"], mm["repo"], mm["ver"]
+    owner, repo = mm["owner"], mm["repo"]
+    cur = m["ver"] if m else version_from_tag(mm["tag"])
+    if cur is None:
+        return f"{path.stem}: ERROR url tag {mm['tag']!r} carries no version", False
     rel = latest(owner, repo)
     tag = rel.get("tag_name", "")
-    new = tag[1:] if tag.startswith("v") else tag
-    if not re.fullmatch(r"[0-9][0-9A-Za-z.\-]*", new or ""):
+    new = version_from_tag(tag)
+    if new is None:
         return f"{path.stem}: ERROR latest release tag {tag!r} is not a version", False
     if new == cur:
         return f"{path.stem}: up to date ({new})", False
@@ -85,7 +102,8 @@ def bump(path: Path, dry_run: bool, get=_get, latest=latest_release) -> tuple[st
             return f"{path.stem}: ERROR release {tag} has no asset {asset}", False
         url = f"https://github.com/{owner}/{repo}/releases/download/{tag}/{asset}"
         sha = hashlib.sha256(get(hit["browser_download_url"], "application/octet-stream")).hexdigest()
-        out = URL_RE.sub(lambda mm: f"{mm.group(1)}{url}{mm.group(6)}", text, count=1)
+        # named groups, not numbers: adding the `tag` group renumbered them (2026-11-27)
+        out = URL_RE.sub(lambda mm: f'{mm.group(1)}{url}{mm.group("quote")}', text, count=1)
     else:
         # source archive of the tag: always exists for a published tag, no asset check
         url = f"https://github.com/{owner}/{repo}/archive/refs/tags/{tag}.tar.gz"
